@@ -1,0 +1,66 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    namespace "com.example.aobot"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.aobot"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        ndk {
+            // Chỉ giữ kiến trúc cần thiết để giảm dung lượng
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
+
+        // Giữ nguyên file model, không bị nén
+        aaptOptions {
+            noCompress "tflite"
+            noCompress "lite"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Đảm bảo Gradle dùng Java 11 trở lên
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
+    // Thêm thư mục chứa thư viện native (.so) của OpenCV
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+}
+
+dependencies {
+    // TensorFlow Lite CPU + GPU
+    implementation 'org.tensorflow:tensorflow-lite:2.12.0'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.12.0'
+
+    // Nếu cần thêm TensorFlow hỗ trợ delegate khác
+    implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
+
+    // Thư viện khác (tuỳ chọn)
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+}

@@ -1,11 +1,11 @@
-// Root build.gradle
+// Root-level build.gradle
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:8.1.0"
+        classpath 'com.android.tools.build:gradle:8.1.1'
     }
 }
 
@@ -16,6 +16,7 @@ allprojects {
     }
 }
 
+// Task để dọn sạch build
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

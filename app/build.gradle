@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.aobot' // namespace thay cho applicationId trong android plugin mới
+    namespace 'com.example.aobot'
     compileSdk 34
 
     defaultConfig {
@@ -13,7 +13,6 @@ android {
         versionCode 1
         versionName "1.0"
 
-        // Giữ file TFLite không nén để load nhanh hơn
         aaptOptions {
             noCompress "tflite"
             noCompress "lite"
@@ -33,15 +32,8 @@ android {
 }
 
 dependencies {
-    // TensorFlow Lite core
     implementation 'org.tensorflow:tensorflow-lite:2.12.0'
-
-    // GPU delegate tăng tốc
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.12.0'
-
-    // OpenCV cho xử lý ảnh
     implementation 'org.opencv:opencv-android:4.7.0'
-
-    // Tesseract OCR nếu cần
     implementation 'cz.adaptech:tesseract4android:4.6.0'
 }

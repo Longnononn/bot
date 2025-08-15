@@ -1,10 +1,9 @@
 plugins {
     id 'com.android.application'
-    id 'kotlin-android'
 }
 
 android {
-    namespace "com.example.aobot"
+    namespace 'com.example.aobot' // namespace thay cho applicationId trong android plugin mới
     compileSdk 34
 
     defaultConfig {
@@ -14,12 +13,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        ndk {
-            // Chỉ giữ kiến trúc cần thiết để giảm dung lượng
-            abiFilters "armeabi-v7a", "arm64-v8a"
-        }
-
-        // Giữ nguyên file model, không bị nén
+        // Giữ file TFLite không nén để load nhanh hơn
         aaptOptions {
             noCompress "tflite"
             noCompress "lite"
@@ -28,39 +22,26 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-    }
-
-    // Đảm bảo Gradle dùng Java 11 trở lên
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-
-    // Thêm thư mục chứa thư viện native (.so) của OpenCV
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['src/main/jniLibs']
+        debug {
+            minifyEnabled false
         }
     }
 }
 
 dependencies {
-    // TensorFlow Lite CPU + GPU
+    // TensorFlow Lite core
     implementation 'org.tensorflow:tensorflow-lite:2.12.0'
+
+    // GPU delegate tăng tốc
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.12.0'
 
-    // Nếu cần thêm TensorFlow hỗ trợ delegate khác
-    implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
+    // OpenCV cho xử lý ảnh
+    implementation 'org.opencv:opencv-android:4.7.0'
 
-    // Thư viện khác (tuỳ chọn)
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
+    // Tesseract OCR nếu cần
+    implementation 'cz.adaptech:tesseract4android:4.6.0'
 }

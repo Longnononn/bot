@@ -1,20 +1,12 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         google()
         mavenCentral()
+        gradlePluginPortal()
     }
-    // Optional: nếu bạn muốn map plugin ids -> module coordinates, uncomment và điều chỉnh
-    // resolutionStrategy {
-    //     eachPlugin {
-    //         if (requested.id.id == "com.android.application") {
-    //             useModule("com.android.tools.build:gradle:8.1.1")
-    //         }
-    //         if (requested.id.id == "org.jetbrains.kotlin.android") {
-    //             useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
-    //         }
-    //     }
-    // }
+    resolutionStrategy {
+        // Optional mapping if necessary; hiện không cần
+    }
 }
 
 dependencyResolutionManagement {

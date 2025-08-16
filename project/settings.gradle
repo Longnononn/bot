@@ -7,16 +7,14 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' } // Nếu cần JitPack
+        maven { url 'https://jitpack.io' }
     }
 }
 
 rootProject.name = "AOBot"
-
-// Include module 'app' và các module khác (ví dụ opencv)
 include ':app'
 include ':opencv'

@@ -12,12 +12,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.gpu.CompatibilityList
+import org.tensorflow.lite.gpu.GpuDelegate
 import java.io.File
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
-    private var interpreter: Interpreter? = null
-    // Thay thế bằng URL Worker thực tế của bạn
+    private var detectionInterpreter: Interpreter? = null
+    private var decisionInterpreter: Interpreter? = null
     private val workerBaseUrl = "https://bot-learning-server.<your-cloudflare-id>.workers.dev"
     private lateinit var screenshotUtils: ScreenshotUtils
 
@@ -39,47 +42,78 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        screenshotUtils = ScreenshotUtils(this)
+        screenshotUtils = ScreenshotUtils()
 
-        findViewById<Button>(R.id.btnGrantAccessibility).setOnClickListener {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        }
-
-        findViewById<Button>(R.id.btnStartBot).setOnClickListener {
-            if ((application as GameBotApp).getInterpreter() == null) {
-                Toast.makeText(this, "Model chưa tải xong. Vui lòng đợi.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+        val startBotButton: Button = findViewById(R.id.startBotButton)
+        startBotButton.setOnClickListener {
+            // Kiểm tra xem các model đã được load chưa
+            if (detectionInterpreter != null && decisionInterpreter != null) {
+                // Yêu cầu quyền Accessibility Service
+                if (!isAccessibilityServiceEnabled()) {
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    startActivity(intent)
+                    Toast.makeText(this, "Vui lòng bật GameBotService", Toast.LENGTH_LONG).show()
+                } else {
+                    screenshotUtils.initMediaProjection(mediaProjectionLauncher)
+                }
+            } else {
+                Toast.makeText(this, "Models đang được tải, vui lòng chờ...", Toast.LENGTH_SHORT).show()
             }
-            // Yêu cầu quyền MediaProjection để chụp màn hình
-            screenshotUtils.initMediaProjection(mediaProjectionLauncher)
         }
 
-        fetchAndLoadModel()
+        fetchAndLoadModels()
     }
 
-    private fun fetchAndLoadModel() {
-        CoroutineScope(Dispatchers.IO).launch {
-            val modelUrl = NetworkHelper.fetchLatestModelUrl(workerBaseUrl)
-            if (modelUrl.isNullOrEmpty()) {
-                runOnUiThread { Toast.makeText(this@MainActivity, "Không lấy được URL model", Toast.LENGTH_LONG).show() }
-                return@launch
-            }
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        var accessibilityEnabled = 0
+        val service = packageName + "/" + GameBotService::class.java.canonicalName
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(
+                applicationContext.contentResolver,
+                Settings.Secure.ACCESSIBILITY_ENABLED
+            )
+        } catch (e: Settings.SettingNotFoundException) {
+            e.printStackTrace()
+        }
+        if (accessibilityEnabled == 1) {
+            val settingValue = Settings.Secure.getString(
+                applicationContext.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            return settingValue != null && settingValue.contains(service)
+        }
+        return false
+    }
 
-            val modelFile = File(filesDir, "pro_decision_model.tflite")
-            val success = NetworkHelper.downloadFile(modelUrl, modelFile)
+    private fun fetchAndLoadModels() {
+        CoroutineScope(Dispatchers.IO).launch {
+            // Tải và cấu hình GPU delegate
+            val delegate = GpuDelegate(CompatibilityList().bestOptionsForThisDevice)
+            val options = Interpreter.Options().addDelegate(delegate)
+
+            // Tải mô hình phát hiện đối tượng
+            val detectionModelUrl = NetworkHelper.fetchLatestModelUrl(workerBaseUrl, "detection")
+            val detectionModelFile = File(filesDir, "detection_model.tflite")
+            val successDetection = NetworkHelper.downloadFile(detectionModelUrl, detectionModelFile)
+
+            // Tải mô hình ra quyết định
+            val decisionModelUrl = NetworkHelper.fetchLatestModelUrl(workerBaseUrl, "decision")
+            val decisionModelFile = File(filesDir, "decision_model.tflite")
+            val successDecision = NetworkHelper.downloadFile(decisionModelUrl, decisionModelFile)
 
             runOnUiThread {
-                if (success) {
-                    interpreter?.close()
+                if (successDetection && successDecision) {
                     try {
-                        interpreter = Interpreter(modelFile)
-                        (application as GameBotApp).setInterpreter(interpreter!!)
-                        Toast.makeText(this@MainActivity, "Model loaded thành công", Toast.LENGTH_SHORT).show()
+                        detectionInterpreter = Interpreter(detectionModelFile, options)
+                        decisionInterpreter = Interpreter(decisionModelFile, options)
+                        (application as GameBotApp).setDetectionInterpreter(detectionInterpreter!!)
+                        (application as GameBotApp).setDecisionInterpreter(decisionInterpreter!!)
+                        Toast.makeText(this@MainActivity, "Cả hai models đã được load thành công", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
-                        Toast.makeText(this@MainActivity, "Lỗi khi load model: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "Lỗi khi load models: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 } else {
-                    Toast.makeText(this@MainActivity, "Tải model thất bại", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, "Tải một hoặc cả hai models thất bại", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -87,6 +121,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        interpreter?.close()
+        detectionInterpreter?.close()
+        decisionInterpreter?.close()
     }
 }

@@ -11,28 +11,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup JDK 17
+      # Setup JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3️⃣ Grant execute permission cho gradlew trong project/
+      # Grant execute permission cho gradlew
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
         working-directory: project
 
-      # 4️⃣ Build Debug APK từ module app
+      # Build Debug APK
       - name: Build Debug APK
         run: ./gradlew :app:assembleDebug --warning-mode all --stacktrace
         working-directory: project
 
-      # 5️⃣ Upload APK debug
+      # Upload APK debug
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:

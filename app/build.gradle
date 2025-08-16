@@ -33,15 +33,15 @@ android {
 }
 
 dependencies {
-    // TensorFlow Lite core
-    implementation 'org.tensorflow:tensorflow-lite:2.12.0'
+    // TensorFlow Lite core (phiên bản mới nhất)
+    implementation 'org.tensorflow:tensorflow-lite:2.16.1'
 
     // GPU delegate tăng tốc
-    implementation 'org.tensorflow:tensorflow-lite-gpu:2.12.0'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
 
-    // OpenCV cho xử lý ảnh
-    implementation 'org.opencv:opencv-android:4.7.0'
+    // OpenCV tích hợp qua module (thay vì artifact Maven)
+    implementation project(':opencv')
 
-    // Tesseract OCR nếu cần
+    // Tesseract OCR
     implementation 'cz.adaptech:tesseract4android:4.6.0'
 }

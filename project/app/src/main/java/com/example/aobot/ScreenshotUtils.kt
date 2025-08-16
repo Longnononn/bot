@@ -25,18 +25,11 @@ class ScreenshotUtils(private val context: Context) {
     private var density = 0
     private var isInitialized = false
 
-    /**
-     * Khởi tạo yêu cầu cấp quyền MediaProjection từ MainActivity.
-     */
     fun initMediaProjection(launcher: ActivityResultLauncher<Intent>) {
         val mpm = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         launcher.launch(mpm.createScreenCaptureIntent())
     }
 
-    /**
-     * Thiết lập MediaProjection và VirtualDisplay sau khi đã có quyền.
-     * Hàm này được gọi từ GameBotService.
-     */
     fun setupMediaProjection(resultCode: Int, data: Intent) {
         if (isInitialized) return
         val mpm = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -50,7 +43,6 @@ class ScreenshotUtils(private val context: Context) {
         height = metrics.heightPixels
         density = metrics.densityDpi
 
-        // Sửa lỗi: Thêm import để giải quyết "Unresolved reference: RGBA_8888"
         imageReader = ImageReader.newInstance(width, height, ImageFormat.RGBA_8888, 2)
         virtualDisplay = mediaProjection?.createVirtualDisplay(
             "ScreenCapture", width, height, density,
@@ -60,14 +52,8 @@ class ScreenshotUtils(private val context: Context) {
         isInitialized = true
     }
 
-    /**
-     * Chụp ảnh màn hình hiện tại.
-     * @return Bitmap của màn hình hoặc null nếu không thể chụp.
-     */
     fun takeScreenshot(): Bitmap? {
-        if (!isInitialized) {
-            return null
-        }
+        if (!isInitialized) return null
         val image = imageReader?.acquireLatestImage() ?: return null
         val planes = image.planes
         val buffer: ByteBuffer = planes[0].buffer
@@ -79,13 +65,9 @@ class ScreenshotUtils(private val context: Context) {
         bitmap.copyPixelsFromBuffer(buffer)
         image.close()
 
-        // Trả về bitmap đã cắt đúng kích thước
         return Bitmap.createBitmap(bitmap, 0, 0, width, height)
     }
 
-    /**
-     * Giải phóng tài nguyên.
-     */
     fun release() {
         if (!isInitialized) return
         virtualDisplay?.release()

@@ -13,7 +13,6 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -22,16 +21,12 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        debug {
-            // Nếu muốn bật debug options
-        }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -57,5 +52,8 @@ dependencies {
     implementation "org.tensorflow:tensorflow-lite:2.14.0"
     implementation "org.tensorflow:tensorflow-lite-gpu:2.14.0"
     implementation "org.tensorflow:tensorflow-lite-support:0.4.4"
-}
 
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+}

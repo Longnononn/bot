@@ -1,2 +1,22 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // Nếu cần JitPack
+    }
+}
+
 rootProject.name = "AOBot"
-include ':app', ':opencv'
+
+// Include module 'app' và các module khác (ví dụ opencv)
+include ':app'
+include ':opencv'

@@ -3,7 +3,10 @@ package com.example.aobot
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.util.Log
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.gpu.CompatibilityList
+import org.tensorflow.lite.gpu.GpuDelegate
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
@@ -19,7 +22,7 @@ data class DetectionResult(val label: String, val score: Float, val location: Re
 class TFLiteDetector(private val interpreter: Interpreter) {
 
     private val labels = listOf("hero", "enemy", "skill1", "skill2", "skill3", "attack_btn", "minimap")
-    private val inputSize = 320 // Kích thước đầu vào của model phát hiện đối tượng
+    private var inputSize = 320
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
         val scaled = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, false)

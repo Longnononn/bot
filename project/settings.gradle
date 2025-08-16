@@ -1,21 +1,18 @@
+// settings.gradle
 pluginManagement {
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
     }
-    resolutionStrategy {
-        // Optional mapping if necessary; hiện không cần
-    }
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
     }
 }
 
-rootProject.name = "aobot"
-include(":app")
+include ':app', ':openCVLibrary'

@@ -15,10 +15,7 @@ import kotlinx.coroutines.launch
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
-import org.tensorflow.lite.gpu.GpuDelegateFactory
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -65,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Models đang được tải, vui lòng chờ...", Toast.LENGTH_SHORT).show()
             }
         }
-        
+
         // Bắt đầu tải các models khi Activity được tạo
         fetchAndLoadModels()
     }
@@ -93,20 +90,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchAndLoadModels() {
         CoroutineScope(Dispatchers.IO).launch {
-            // Sửa lỗi: Khởi tạo GPU delegate đúng cách
+            // Khởi tạo GPU delegate
             val compatList = CompatibilityList()
             val options = Interpreter.Options()
             if (compatList.isGpuDelegateAvailable) {
                 options.addDelegate(GpuDelegate(compatList.bestOptionsForThisDevice))
             } else {
-                // Xử lý khi GPU không có sẵn
                 Log.w("MainActivity", "GPU không được hỗ trợ trên thiết bị này.")
             }
 
             // Tải mô hình phát hiện đối tượng
             val detectionModelUrl = NetworkHelper.fetchLatestModelUrl(workerBaseUrl, "detection")
             val detectionModelFile = File(filesDir, "detection_model.tflite")
-            
+
             // Sửa lỗi: Thêm kiểm tra null trước khi tải xuống
             val successDetection = detectionModelUrl?.let { NetworkHelper.downloadFile(it, detectionModelFile) } ?: false
 

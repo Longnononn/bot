@@ -12,25 +12,32 @@ import org.tensorflow.lite.Interpreter
 class GameBotService : AccessibilityService() {
 
     private lateinit var autoRank: AutoRankManager
-    private var interpreter: Interpreter? = null
     private lateinit var screenshotUtils: ScreenshotUtils
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val resultCode = intent?.getIntExtra("resultCode", 0) ?: 0
         val data = intent?.getParcelableExtra<Intent>("data")
-        
+
         if (resultCode != 0 && data != null) {
-            val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            val mediaProjection = mpm.getMediaProjection(resultCode, data)
-            screenshotUtils = ScreenshotUtils(this, mediaProjection)
-            
-            interpreter = (application as GameBotApp).getInterpreter()
-            
-            if (interpreter != null) {
-                autoRank = AutoRankManager(this, interpreter!!, screenshotUtils)
+            val decisionInterpreter = (application as GameBotApp).getDecisionInterpreter()
+            val detectionInterpreter = (application as GameBotApp).getDetectionInterpreter()
+
+            if (detectionInterpreter != null && decisionInterpreter != null) {
+                // Khởi tạo ScreenshotUtils với Context của Service
+                screenshotUtils = ScreenshotUtils(this)
+                screenshotUtils.setupMediaProjection(resultCode, data)
+
+                // Khởi tạo AutoRankManager với các Interpreter và phụ thuộc đầy đủ
+                autoRank = AutoRankManager(
+                    this,
+                    detectionInterpreter,
+                    decisionInterpreter,
+                    screenshotUtils,
+                    NetworkHelper
+                )
                 autoRank.start()
             } else {
-                Log.e("GameBotService", "Interpreter không được khởi tạo, bot sẽ không chạy.")
+                Log.e("GameBotService", "Interpreters không được khởi tạo, bot sẽ không chạy.")
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -41,7 +48,9 @@ class GameBotService : AccessibilityService() {
         Log.d("GameBotService", "Service connected")
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        // Có thể thêm logic xử lý sự kiện Accessibility tại đây
+    }
 
     override fun onInterrupt() {
         Log.w("GameBotService", "Bot bị ngắt")
@@ -50,12 +59,39 @@ class GameBotService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        autoRank.stop()
+        if (::autoRank.isInitialized) {
+            autoRank.stop()
+        }
+        if (::screenshotUtils.isInitialized) {
+            screenshotUtils.release()
+        }
+        Log.d("GameBotService", "Bot Service đã bị hủy.")
     }
 
     companion object {
+        private var instance: GameBotService? = null
+
+        fun getInstance(context: Context): GameBotService? {
+            return instance ?: run {
+                if (context is GameBotService) {
+                    context.also { instance = it }
+                } else {
+                    null
+                }
+            }
+        }
+
         fun performTap(x: Float, y: Float) {
-            // ... (Logic thực hiện hành động)
+            instance?.let { service ->
+                val path = Path()
+                path.moveTo(x, y)
+                val gestureBuilder = GestureDescription.Builder()
+                val gestureDescription = gestureBuilder.addStroke(
+                    GestureDescription.StrokeDescription(path, 0, 10)
+                ).build()
+                service.dispatchGesture(gestureDescription, null, null)
+                Log.d("GameBotService", "Thực hiện tap tại ($x, $y)")
+            } ?: Log.e("GameBotService", "Service instance is null. Cannot perform tap.")
         }
     }
 }

@@ -10,30 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
-      - name: Checkout repository
+      # Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up JDK
+      # Setup Java
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          java-version: '17'
+          distribution: 'temurin'
 
-      # Grant execute permission for gradlew
+      # Make gradlew executable
       - name: Grant execute permission for gradlew
         run: chmod +x ./project/gradlew
 
-      # List Gradle tasks to check availability
-      - name: List all Gradle tasks
+      # Verify gradlew tasks
+      - name: List Gradle tasks
         run: ./project/gradlew tasks --all
 
-      # Clean build
-      - name: Clean project
-        run: ./project/gradlew clean
-
-      # Build Debug APK
+      # Build debug APK
       - name: Build Debug APK
         run: ./project/gradlew :app:assembleDebug --warning-mode all --stacktrace
 

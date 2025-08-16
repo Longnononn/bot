@@ -1,5 +1,4 @@
-// File: build.gradle (project-level)
-
+// Chỉ cần config repository và classpath nếu có plugin build
 buildscript {
     repositories {
         google()
@@ -10,6 +9,10 @@ buildscript {
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
 }

@@ -1,17 +1,21 @@
-name: bot aov
+name: Android CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
     steps:
-    - name: Checkout source
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up JDK 17
@@ -20,14 +24,41 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      working-directory: project
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper/
+        key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: gradle-
 
-    - name: List Gradle tasks
-      run: ./gradlew tasks --all
-      working-directory: project
+    - name: Download Android SDK
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 34
+        target: default
+        arch: x86_64
+        force-avd-creation: false
+        emulator-options: "-no-window -no-audio"
 
-    - name: Build with Gradle
-      run: ./gradlew build
-      working-directory: project
+    - name: Accept Android licenses
+      run: yes | sdkmanager --licenses
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --stacktrace
+
+    - name: Build Release APK
+      run: ./gradlew assembleRelease --stacktrace
+
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: debug-apk
+        path: app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-apk
+        path: app/build/outputs/apk/release/app-release.apk

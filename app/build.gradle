@@ -12,12 +12,6 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-
-        // Giữ file TFLite không nén để load nhanh hơn
-        aaptOptions {
-            noCompress "tflite"
-            noCompress "lite"
-        }
     }
 
     buildTypes {
@@ -30,16 +24,17 @@ android {
             minifyEnabled false
         }
     }
+
+    packaging {
+        resources {
+            noCompress += ["tflite", "lite"]
+        }
+    }
 }
 
 dependencies {
-    // TensorFlow Lite core (phiên bản mới nhất)
     implementation 'org.tensorflow:tensorflow-lite:2.16.1'
-    // GPU delegate tăng tốc
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
-    // OpenCV tích hợp qua module
     implementation project(':opencv')
-    // Tesseract OCR
     implementation 'cz.adaptech:tesseract4android:4.6.0'
 }
-

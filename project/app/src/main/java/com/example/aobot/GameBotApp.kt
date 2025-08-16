@@ -4,21 +4,35 @@ import android.app.Application
 import org.tensorflow.lite.Interpreter
 
 class GameBotApp : Application() {
-    companion object {
-        private lateinit var instance: GameBotApp
-        fun getInstance(): GameBotApp = instance
-    }
 
-    private var interpreter: Interpreter? = null
+    private var detectionInterpreter: Interpreter? = null
+    private var decisionInterpreter: Interpreter? = null
 
     override fun onCreate() {
         super.onCreate()
-        instance = this
     }
 
-    fun setInterpreter(interpreter: Interpreter) {
-        this.interpreter = interpreter
+    /**
+     * Set the TFLite Interpreter for object detection.
+     */
+    fun setDetectionInterpreter(interpreter: Interpreter) {
+        this.detectionInterpreter = interpreter
     }
 
-    fun getInterpreter(): Interpreter? = interpreter
+    /**
+     * Get the TFLite Interpreter for object detection.
+     */
+    fun getDetectionInterpreter(): Interpreter? = detectionInterpreter
+
+    /**
+     * Set the TFLite Interpreter for decision making.
+     */
+    fun setDecisionInterpreter(interpreter: Interpreter) {
+        this.decisionInterpreter = interpreter
+    }
+
+    /**
+     * Get the TFLite Interpreter for decision making.
+     */
+    fun getDecisionInterpreter(): Interpreter? = decisionInterpreter
 }

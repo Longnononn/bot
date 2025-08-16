@@ -7,4 +7,7 @@
     <string name="tflite_processing">Đang phân tích AI...</string>
     <string name="service_running">Bot đang chạy</string>
     <string name="service_stopped">Bot đã dừng</string>
+    <string name="accessibility_service_description">
+        Dịch vụ hỗ trợ tự động chơi game bằng AI
+    </string>
 </resources>

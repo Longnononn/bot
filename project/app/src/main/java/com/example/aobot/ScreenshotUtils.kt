@@ -43,7 +43,7 @@ class ScreenshotUtils(private val context: Context) {
         height = metrics.heightPixels
         density = metrics.densityDpi
 
-        imageReader = ImageReader.newInstance(width, height, ImageFormat.RGBA_8888, 2)
+        imageReader = ImageReader.newInstance(width, height, ImageFormat.FLEX_RGBA_8888, 2)
         virtualDisplay = mediaProjection?.createVirtualDisplay(
             "ScreenCapture", width, height, density,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,

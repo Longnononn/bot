@@ -19,7 +19,7 @@ data class DetectionResult(val label: String, val score: Float, val location: Re
  *
  * @param interpreter Đối tượng Interpreter đã được khởi tạo với model phát hiện đối tượng.
  */
-class ImageAnalyzer(private val interpreter: Interpreter) {
+class TFLiteDetector(private val interpreter: Interpreter) {
 
     private val labels = listOf("hero", "enemy", "skill1", "skill2", "skill3", "attack_btn", "minimap")
     private var inputSize = 320

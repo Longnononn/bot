@@ -4,37 +4,35 @@ on:
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Setup JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Grant execute permission cho gradlew
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
         working-directory: project
 
-      # Build Debug APK
+      - name: Check available Gradle tasks
+        run: ./gradlew tasks --all
+        working-directory: project
+
       - name: Build Debug APK
         run: ./gradlew :app:assembleDebug --warning-mode all --stacktrace
         working-directory: project
 
-      # Upload APK debug
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: ./project/app/build/outputs/apk/debug/*.apk
+          path: project/app/build/outputs/apk/debug/*.apk

@@ -38,14 +38,14 @@ class AutoRankManager(
                     if (screenshot != null) {
                         val detections = detector.detectObjects(screenshot)
                         val state = extractGameState(detections)
-                        
+
                         val action = decisionMaker.getAction(state)
-                        
+
                         executeAction(action, detections)
-                        
+
                         // Gửi dữ liệu cho mô hình học nếu cần
                         // sendDataToWorker(state, screenshot)
-                        
+
                         screenshot.recycle()
                     } else {
                         Log.e("AutoRankManager", "Không thể chụp màn hình.")
@@ -76,14 +76,14 @@ class AutoRankManager(
         bgHandler?.looper?.quitSafely()
         Log.d("AutoRankManager", "Bot loop stopped.")
     }
-    
+
     /**
      * Trích xuất thông tin game từ các đối tượng được phát hiện để tạo trạng thái.
      */
     private fun extractGameState(detections: List<DetectionResult>): Map<String, Any> {
         val hero = detections.firstOrNull { it.label == "hero" }
         val enemy = detections.firstOrNull { it.label == "enemy" }
-        
+
         // Tạo một map với các giá trị giả định hoặc trích xuất từ detections
         // Cần thay thế bằng logic thực tế để lấy các giá trị này từ màn hình
         return mapOf(
@@ -120,6 +120,27 @@ class AutoRankManager(
                     Log.d("AutoRankManager", "Action: Sử dụng skill 1")
                 }
             }
+            "cast_skill_2" -> {
+                 val skill2Btn = detections.firstOrNull { it.label == "skill2" }
+                if (skill2Btn != null) {
+                    GameBotService.performTap(skill2Btn.location.centerX(), skill2Btn.location.centerY())
+                    Log.d("AutoRankManager", "Action: Sử dụng skill 2")
+                }
+            }
+            "cast_skill_3" -> {
+                val skill3Btn = detections.firstOrNull { it.label == "skill3" }
+                if (skill3Btn != null) {
+                    GameBotService.performTap(skill3Btn.location.centerX(), skill3Btn.location.centerY())
+                    Log.d("AutoRankManager", "Action: Sử dụng skill 3")
+                }
+            }
+            "attack" -> {
+                val attackBtn = detections.firstOrNull { it.label == "attack_btn" }
+                if (attackBtn != null) {
+                    GameBotService.performTap(attackBtn.location.centerX(), attackBtn.location.centerY())
+                    Log.d("AutoRankManager", "Action: Tấn công bằng nút attack")
+                }
+            }
             else -> {
                 val enemy = detections.firstOrNull { it.label == "enemy" }
                 if (enemy != null) {
@@ -129,7 +150,7 @@ class AutoRankManager(
             }
         }
     }
-    
+
     private fun sendDataToWorker(state: Map<String, Any>, screenshot: Bitmap) {
         val screenshotBase64 = encodeBitmapToBase64(screenshot)
         val stateJson = gson.toJson(state)

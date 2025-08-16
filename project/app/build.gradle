@@ -22,6 +22,18 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            // Nếu muốn bật debug options
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -45,13 +57,5 @@ dependencies {
     implementation "org.tensorflow:tensorflow-lite:2.14.0"
     implementation "org.tensorflow:tensorflow-lite-gpu:2.14.0"
     implementation "org.tensorflow:tensorflow-lite-support:0.4.4"
-
-    // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
-
-    // Testing
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.6'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
+

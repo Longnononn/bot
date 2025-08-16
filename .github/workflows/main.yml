@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # Nâng cấp lên phiên bản mới nhất
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4 # Nâng cấp lên phiên bản mới nhất
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'

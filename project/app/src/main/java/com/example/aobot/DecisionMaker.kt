@@ -1,6 +1,7 @@
 package com.example.aobot
 
 import android.content.Context
+import android.util.Log
 import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -19,7 +20,6 @@ class DecisionMaker(private val interpreter: Interpreter) {
      * @return Tên của hành động được đề xuất.
      */
     fun getAction(state: Map<String, Any>): String {
-        // Chuyển đổi Map state thành ByteBuffer để làm input cho TFLite.
         val inputBuffer = convertStateToByteBuffer(state)
 
         // Khai báo output buffer. Kích thước phụ thuộc vào output của model.
@@ -45,7 +45,7 @@ class DecisionMaker(private val interpreter: Interpreter) {
     
     /**
      * Chuyển đổi Map<String, Any> thành ByteBuffer để làm đầu vào cho TFLite model.
-     * Cần điều chỉnh hàm này để phù hợp với định dạng đầu vào của model cụ thể của bạn.
+     * Hàm này phải được điều chỉnh để khớp với định dạng đầu vào cụ thể của model.
      *
      * @param state Dữ liệu đầu vào.
      * @return ByteBuffer chứa dữ liệu đã được chuẩn hóa.
@@ -57,14 +57,28 @@ class DecisionMaker(private val interpreter: Interpreter) {
             order(ByteOrder.nativeOrder())
         }
 
-        // Đẩy các giá trị từ map vào buffer theo đúng thứ tự mà model mong đợi.
-        state.forEach { (_, value) ->
+        // Khai báo một mảng các key theo đúng thứ tự mà mô hình mong đợi
+        val sortedKeys = listOf(
+            "hero_health", "hero_mana", "hero_location_x", "hero_location_y",
+            "enemy_closest_distance", "enemy_count", "tower_closest_distance",
+            "is_pushing", "is_retreating", "game_state"
+        )
+        
+        // Đẩy các giá trị vào buffer theo đúng thứ tự đã xác định
+        for (key in sortedKeys) {
+            val value = state[key]
             when (value) {
                 is Float -> buffer.putFloat(value)
-                is Boolean -> buffer.putFloat(if (value) 1.0f else 0.0f)
-                // Thêm các kiểu dữ liệu khác nếu cần thiết.
+                is Double -> buffer.putFloat(value.toFloat())
+                is Int -> buffer.putFloat(value.toFloat())
+                else -> {
+                    // Xử lý trường hợp giá trị không hợp lệ hoặc thiếu
+                    Log.w("DecisionMaker", "Giá trị cho key '$key' không hợp lệ: $value")
+                    buffer.putFloat(0.0f) // Sử dụng giá trị mặc định
+                }
             }
         }
+        
         buffer.rewind()
         return buffer
     }

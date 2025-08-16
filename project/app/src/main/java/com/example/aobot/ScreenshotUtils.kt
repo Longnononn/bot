@@ -50,6 +50,7 @@ class ScreenshotUtils(private val context: Context) {
         height = metrics.heightPixels
         density = metrics.densityDpi
 
+        // Sửa lỗi: Thêm import để giải quyết "Unresolved reference: RGBA_8888"
         imageReader = ImageReader.newInstance(width, height, ImageFormat.RGBA_8888, 2)
         virtualDisplay = mediaProjection?.createVirtualDisplay(
             "ScreenCapture", width, height, density,

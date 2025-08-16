@@ -1,22 +1,41 @@
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace "com.example.aobot"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.aobot"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        // Giữ file TFLite không nén để load nhanh hơn
+        aaptOptions {
+            noCompress "tflite"
+            noCompress "lite"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
     }
 }
 
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' } // Nếu cần JitPack
-    }
+dependencies {
+    // TensorFlow Lite core
+    implementation 'org.tensorflow:tensorflow-lite:2.16.1'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
+    implementation project(':opencv') // Module opencv
+    implementation 'cz.adaptech:tesseract4android:4.6.0'
 }
-
-rootProject.name = "AOBot"
-
-// Include module 'app' và các module khác (ví dụ opencv)
-include ':app'
-include ':opencv'

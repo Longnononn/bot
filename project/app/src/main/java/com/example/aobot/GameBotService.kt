@@ -2,9 +2,9 @@ package com.example.aobot
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.Context
 import android.content.Intent
 import android.graphics.Path
-import android.media.projection.MediaProjectionManager
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import org.tensorflow.lite.Interpreter
@@ -54,7 +54,9 @@ class GameBotService : AccessibilityService() {
 
     override fun onInterrupt() {
         Log.w("GameBotService", "Bot bị ngắt")
-        autoRank.stop()
+        if (::autoRank.isInitialized) {
+            autoRank.stop()
+        }
     }
 
     override fun onDestroy() {
@@ -71,18 +73,10 @@ class GameBotService : AccessibilityService() {
     companion object {
         private var instance: GameBotService? = null
 
-        fun getInstance(context: Context): GameBotService? {
-            return instance ?: run {
-                if (context is GameBotService) {
-                    context.also { instance = it }
-                } else {
-                    null
-                }
-            }
-        }
-
+        fun getInstance(): GameBotService? = instance
+        
         fun performTap(x: Float, y: Float) {
-            instance?.let { service ->
+            getInstance()?.let { service ->
                 val path = Path()
                 path.moveTo(x, y)
                 val gestureBuilder = GestureDescription.Builder()

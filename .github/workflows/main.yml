@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Nâng cấp lên phiên bản mới nhất
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4 # Nâng cấp lên phiên bản mới nhất
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -23,8 +23,12 @@ jobs:
         run: chmod +x gradlew
         working-directory: project
 
+      - name: Check dependencies
+        run: ./gradlew dependencies --stacktrace
+        working-directory: project
+
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --warning-mode all --stacktrace
         working-directory: project
 
       - name: Upload APK
@@ -32,4 +36,3 @@ jobs:
         with:
           name: debug-apk
           path: project/app/build/outputs/apk/debug/*.apk
-

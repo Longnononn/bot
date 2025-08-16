@@ -1,18 +1,11 @@
 buildscript {
     repositories {
+        // Chỉ giữ những repository cần thiết cho buildscript
         google()
         mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.1.1'
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
     }
 }
 

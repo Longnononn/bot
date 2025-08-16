@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,7 +15,9 @@ import kotlinx.coroutines.launch
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
+import org.tensorflow.lite.gpu.GpuDelegateFactory
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var decisionInterpreter: Interpreter? = null
     private val workerBaseUrl = "https://bot-learning-server.<your-cloudflare-id>.workers.dev"
     private lateinit var screenshotUtils: ScreenshotUtils
+    private lateinit var startBotButton: Button
 
     private val mediaProjectionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -42,13 +46,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        screenshotUtils = ScreenshotUtils()
+        // Sửa lỗi: Khởi tạo ScreenshotUtils với context
+        screenshotUtils = ScreenshotUtils(this)
 
-        val startBotButton: Button = findViewById(R.id.startBotButton)
+        // Sửa lỗi: Ánh xạ view startBotButton
+        startBotButton = findViewById(R.id.startBotButton)
+
         startBotButton.setOnClickListener {
-            // Kiểm tra xem các model đã được load chưa
             if (detectionInterpreter != null && decisionInterpreter != null) {
-                // Yêu cầu quyền Accessibility Service
                 if (!isAccessibilityServiceEnabled()) {
                     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                     startActivity(intent)
@@ -60,7 +65,8 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Models đang được tải, vui lòng chờ...", Toast.LENGTH_SHORT).show()
             }
         }
-
+        
+        // Bắt đầu tải các models khi Activity được tạo
         fetchAndLoadModels()
     }
 
@@ -87,19 +93,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchAndLoadModels() {
         CoroutineScope(Dispatchers.IO).launch {
-            // Tải và cấu hình GPU delegate
-            val delegate = GpuDelegate(CompatibilityList().bestOptionsForThisDevice)
-            val options = Interpreter.Options().addDelegate(delegate)
+            // Sửa lỗi: Khởi tạo GPU delegate đúng cách
+            val compatList = CompatibilityList()
+            val options = Interpreter.Options()
+            if (compatList.isGpuDelegateAvailable) {
+                options.addDelegate(GpuDelegate(compatList.bestOptionsForThisDevice))
+            } else {
+                // Xử lý khi GPU không có sẵn
+                Log.w("MainActivity", "GPU không được hỗ trợ trên thiết bị này.")
+            }
 
             // Tải mô hình phát hiện đối tượng
             val detectionModelUrl = NetworkHelper.fetchLatestModelUrl(workerBaseUrl, "detection")
             val detectionModelFile = File(filesDir, "detection_model.tflite")
-            val successDetection = NetworkHelper.downloadFile(detectionModelUrl, detectionModelFile)
+            
+            // Sửa lỗi: Thêm kiểm tra null trước khi tải xuống
+            val successDetection = detectionModelUrl?.let { NetworkHelper.downloadFile(it, detectionModelFile) } ?: false
 
             // Tải mô hình ra quyết định
             val decisionModelUrl = NetworkHelper.fetchLatestModelUrl(workerBaseUrl, "decision")
             val decisionModelFile = File(filesDir, "decision_model.tflite")
-            val successDecision = NetworkHelper.downloadFile(decisionModelUrl, decisionModelFile)
+
+            // Sửa lỗi: Thêm kiểm tra null trước khi tải xuống
+            val successDecision = decisionModelUrl?.let { NetworkHelper.downloadFile(it, decisionModelFile) } ?: false
 
             runOnUiThread {
                 if (successDetection && successDecision) {
@@ -111,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this@MainActivity, "Cả hai models đã được load thành công", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
                         Toast.makeText(this@MainActivity, "Lỗi khi load models: ${e.message}", Toast.LENGTH_LONG).show()
+                        Log.e("MainActivity", "Error loading models: ${e.message}")
                     }
                 } else {
                     Toast.makeText(this@MainActivity, "Tải một hoặc cả hai models thất bại", Toast.LENGTH_LONG).show()

@@ -11,8 +11,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' } // nếu cần JitPack
     }
 }
 
 rootProject.name = "AOBot"
-include ':app', ':opencv' // Thêm ':opencv' nếu có module OpenCV
+include ':app', ':opencv' // thêm ':opencv' nếu có module OpenCV

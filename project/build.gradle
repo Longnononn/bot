@@ -1,6 +1,4 @@
-// Minimal root build.gradle. Repositories are handled in settings.gradle.
-// Use plugin DSL in root to provide plugin versions (apply false so they can be used in modules).
-
+// Root build.gradle - minimal, plugin versions managed by the plugins DSL
 plugins {
     id 'com.android.application' version '8.1.1' apply false
     id 'org.jetbrains.kotlin.android' version '1.9.10' apply false

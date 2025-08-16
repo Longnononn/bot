@@ -27,7 +27,7 @@ android {
 
     packaging {
         resources {
-            noCompress += ["tflite", "lite"]
+            noCompress += ["tflite", "lite"] // giữ file TFLite không nén
         }
     }
 }
@@ -35,6 +35,6 @@ android {
 dependencies {
     implementation 'org.tensorflow:tensorflow-lite:2.16.1'
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
-    implementation project(':opencv')
+    implementation project(':opencv') // nếu có module OpenCV
     implementation 'cz.adaptech:tesseract4android:4.6.0'
 }

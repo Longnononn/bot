@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "AOBot"
-include ':app'
+include ':app', ':opencv' // Thêm ':opencv' nếu có module OpenCV

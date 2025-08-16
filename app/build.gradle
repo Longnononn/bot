@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace "com.example.aobot"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.aobot"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        aaptOptions {
+            noCompress "tflite"
+            noCompress "lite"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.tensorflow:tensorflow-lite:2.16.1'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
+    implementation project(':opencv')
+    implementation 'cz.adaptech:tesseract4android:4.6.0'
+}

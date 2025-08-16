@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup JDK 17 (yêu cầu AGP 8+)
+      # 2️⃣ Setup JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -26,20 +26,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      # 4️⃣ Kiểm tra dependencies
-      - name: Check dependencies
-        run: ./gradlew dependencies --stacktrace
-
-      # 5️⃣ Build Debug APK
+      # 4️⃣ Build Debug APK
       - name: Build Debug APK
         run: |
-          # Nếu module app nằm trong root: 
+          # Nếu module app nằm ở root
           ./gradlew :app:assembleDebug --warning-mode all --stacktrace
-          
-          # Nếu module app nằm trong project/: 
+
+          # Nếu module app nằm trong project/
           # ./gradlew :project:app:assembleDebug --warning-mode all --stacktrace
 
-      # 6️⃣ Upload APK debug
+      # 5️⃣ Upload APK debug
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:

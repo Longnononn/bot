@@ -4,19 +4,20 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Base64
 import android.util.Log
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.Interpreter
-import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
-import android.util.Base64
+import kotlin.random.Random
 
 class AutoRankManager(
     private val context: Context,
-    private val detectionInterpreter: Interpreter, // Thêm Interpreter cho model phát hiện
-    private val decisionInterpreter: Interpreter,  // Thêm Interpreter cho model ra quyết định
+    private val detectionInterpreter: Interpreter,
+    private val decisionInterpreter: Interpreter,
     private val screenshotUtils: ScreenshotUtils,
     private val networkHelper: NetworkHelper
 ) {
@@ -28,6 +29,34 @@ class AutoRankManager(
 
     private var bgHandler: Handler? = null
     private var isRunning = false
+
+    private val loopRunnable = object : Runnable {
+        override fun run() {
+            if (isRunning) {
+                try {
+                    val screenshot = screenshotUtils.takeScreenshot()
+                    if (screenshot != null) {
+                        val detections = detector.detectObjects(screenshot)
+                        val state = extractGameState(detections)
+                        
+                        val action = decisionMaker.getAction(state)
+                        
+                        executeAction(action, detections)
+                        
+                        // Gửi dữ liệu cho mô hình học nếu cần
+                        // sendDataToWorker(state, screenshot)
+                        
+                        screenshot.recycle()
+                    } else {
+                        Log.e("AutoRankManager", "Không thể chụp màn hình.")
+                    }
+                } catch (e: Exception) {
+                    Log.e("AutoRankManager", "Lỗi trong vòng lặp bot: ${e.message}")
+                }
+                bgHandler?.postDelayed(this, 100) // Lặp lại sau 100ms
+            }
+        }
+    }
 
     fun start() {
         if (isRunning) return
@@ -41,50 +70,55 @@ class AutoRankManager(
     }
 
     fun stop() {
+        if (!isRunning) return
         isRunning = false
-        bgHandler?.removeCallbacksAndMessages(null)
+        bgHandler?.removeCallbacks(loopRunnable)
+        bgHandler?.looper?.quitSafely()
         Log.d("AutoRankManager", "Bot loop stopped.")
     }
-
-    private val loopRunnable = object : Runnable {
-        override fun run() {
-            try {
-                val bmp: Bitmap? = screenshotUtils.takeScreenshot()
-                bmp?.let {
-                    val detections = detector.detectObjects(it)
-                    val state = mapState(detections, it.width, it.height)
-                    val action = decisionMaker.getAction(state)
-                    
-                    performAction(action, detections)
-                    
-                    // Gửi dữ liệu lên Worker (tùy chọn)
-                    sendDataToWorker(state, it)
-
-                    it.recycle()
-                }
-            } catch (e: Exception) {
-                Log.e("AutoRankManager", "Loop error: ${e.message}")
-            }
-            if (isRunning) bgHandler?.postDelayed(this, 50)
-        }
+    
+    /**
+     * Trích xuất thông tin game từ các đối tượng được phát hiện để tạo trạng thái.
+     */
+    private fun extractGameState(detections: List<DetectionResult>): Map<String, Any> {
+        val hero = detections.firstOrNull { it.label == "hero" }
+        val enemy = detections.firstOrNull { it.label == "enemy" }
+        
+        // Tạo một map với các giá trị giả định hoặc trích xuất từ detections
+        // Cần thay thế bằng logic thực tế để lấy các giá trị này từ màn hình
+        return mapOf(
+            "hero_health" to 1.0f,
+            "hero_mana" to 0.8f,
+            "hero_location_x" to (hero?.location?.centerX() ?: 0f),
+            "hero_location_y" to (hero?.location?.centerY() ?: 0f),
+            "enemy_closest_distance" to if (enemy != null) {
+                // Tính khoảng cách giữa hero và enemy
+                Math.sqrt(
+                    Math.pow((hero!!.location.centerX() - enemy.location.centerX()).toDouble(), 2.0) +
+                    Math.pow((hero.location.centerY() - enemy.location.centerY()).toDouble(), 2.0)
+                ).toFloat()
+            } else 1000f,
+            "enemy_count" to detections.count { it.label == "enemy" }.toFloat(),
+            "tower_closest_distance" to 500f, // Giá trị giả định
+            "is_pushing" to 0f, // Giá trị giả định
+            "is_retreating" to 0f, // Giá trị giả định
+            "game_state" to 0f // Giá trị giả định
+        )
     }
 
-    private fun mapState(detections: List<DetectionResult>, w: Int, h: Int) = mapOf<String, Any>(
-        "hero_pos_x" to w/2f,
-        "hp" to 1f,
-        "mana" to 1f,
-        "enemies_minimap" to detections.any { it.label=="enemy" }
-    )
-
-    private fun performAction(action: String, detections: List<DetectionResult>) {
+    private fun executeAction(action: String, detections: List<DetectionResult>) {
         when (action) {
             "attack_tower" -> {
-                // Ví dụ: Tìm vị trí tháp địch và gọi performTap
                 Log.d("AutoRankManager", "Action: attack_tower")
+                // TODO: Triển khai logic tấn công tháp
             }
             "cast_skill_1" -> {
-                // Ví dụ: Tím vị trí nút skill và gọi performTap
-                Log.d("AutoRankManager", "Action: cast_skill_1")
+                // Ví dụ: Tìm vị trí nút skill và gọi performTap
+                val skill1Btn = detections.firstOrNull { it.label == "skill1" }
+                if (skill1Btn != null) {
+                    GameBotService.performTap(skill1Btn.location.centerX(), skill1Btn.location.centerY())
+                    Log.d("AutoRankManager", "Action: Sử dụng skill 1")
+                }
             }
             else -> {
                 val enemy = detections.firstOrNull { it.label == "enemy" }
@@ -112,7 +146,8 @@ class AutoRankManager(
 
     private fun encodeBitmapToBase64(bitmap: Bitmap): String {
         val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        val bytes = outputStream.toByteArray()
+        return Base64.encodeToString(bytes, Base64.NO_WRAP)
     }
 }

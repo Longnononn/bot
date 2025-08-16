@@ -13,7 +13,6 @@ android {
         versionCode 1
         versionName "1.0"
 
-        // Giữ file TFLite không nén để load nhanh hơn
         aaptOptions {
             noCompress "tflite"
             noCompress "lite"
@@ -33,9 +32,8 @@ android {
 }
 
 dependencies {
-    // TensorFlow Lite core
     implementation 'org.tensorflow:tensorflow-lite:2.16.1'
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
-    implementation project(':opencv') // Module opencv
+    implementation project(':opencv')
     implementation 'cz.adaptech:tesseract4android:4.6.0'
 }

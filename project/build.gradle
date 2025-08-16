@@ -1,11 +1,11 @@
-// Root-level build.gradle
+// File build.gradle cấp root
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1'
+        classpath 'com.android.tools.build:gradle:8.1.1' // Android Gradle Plugin
     }
 }
 
@@ -13,6 +13,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' } // Thêm JitPack cho Tesseract
     }
 }
 

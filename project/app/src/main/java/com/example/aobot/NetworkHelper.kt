@@ -7,7 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
@@ -18,15 +17,21 @@ object NetworkHelper {
     private val client = OkHttpClient()
     private val gson = Gson()
 
-    suspend fun fetchLatestModelUrl(baseUrl: String): String? = withContext(Dispatchers.IO) {
-        val request = Request.Builder().url("$baseUrl/model").get().build()
+    /**
+     * Tải URL của model mới nhất từ Cloudflare Worker.
+     * @param baseUrl URL cơ sở của Cloudflare Worker.
+     * @param type Loại model cần tải (ví dụ: "detection" hoặc "decision").
+     * @return URL của model hoặc null nếu có lỗi.
+     */
+    suspend fun fetchLatestModelUrl(baseUrl: String, type: String): String? = withContext(Dispatchers.IO) {
+        val request = Request.Builder().url("$baseUrl/model?type=$type").get().build()
         try {
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) return@withContext null
             val jsonResponse = gson.fromJson(response.body?.string(), Map::class.java)
             return@withContext jsonResponse["model_url"] as? String
         } catch (e: Exception) {
-            Log.e("NetworkHelper", "Error fetching model URL: ${e.message}")
+            Log.e("NetworkHelper", "Error fetching model URL for type $type: ${e.message}")
             return@withContext null
         }
     }
@@ -58,7 +63,7 @@ object NetworkHelper {
             return@withContext jsonResponse["key"] as? String
         } catch (e: Exception) {
             Log.e("NetworkHelper", "Error sending data to worker: ${e.message}")
-            return@withContext e.message
+            return@withContext null
         }
     }
 }

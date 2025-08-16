@@ -1,8 +1,4 @@
-// Project-level build.gradle (Gradle 8+ chuẩn)
-plugins {
-    // Không cần plugin Android ở project-level
-}
-
+// Project-level build.gradle
 buildscript {
     repositories {
         google()
@@ -13,7 +9,7 @@ buildscript {
     }
 }
 
-// Dùng tất cả module con
+// Subprojects repository setup
 subprojects {
     repositories {
         google()
@@ -22,8 +18,7 @@ subprojects {
     }
 }
 
-// Task clean cho root
+// Task clean
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-

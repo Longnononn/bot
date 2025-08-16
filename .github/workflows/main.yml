@@ -1,4 +1,4 @@
-name: Android Build
+name: Build APK
 
 on:
   push:
@@ -11,17 +11,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # 1️⃣ Lấy code từ repo
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      # 2️⃣ Cài JDK 17 (yêu cầu cho AGP 8+)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      # 3️⃣ Đảm bảo gradlew có quyền thực thi
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
-    - name: Build with Gradle
-      run: ./gradlew clean build --warning-mode all --stacktrace
+      # 4️⃣ Kiểm tra dependency (hiển thị lỗi chi tiết nếu có)
+      - name: Check dependencies
+        run: ./gradlew dependencies --stacktrace
+
+      # 5️⃣ Build Debug APK
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --warning-mode all --stacktrace
+
+      # 6️⃣ Upload APK debug
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: ./app/build/outputs/apk/debug/*.apk

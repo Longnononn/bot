@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1' // Android Gradle Plugin
+        classpath 'com.android.tools.build:gradle:8.1.1'
     }
 }
 
@@ -13,11 +13,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' } // Thêm JitPack cho Tesseract
+        maven { url 'https://jitpack.io' }
     }
 }
 
-// Task để dọn sạch build
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+```

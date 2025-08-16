@@ -1,4 +1,8 @@
-// Chỉ cần config repository và classpath nếu có plugin build
+// Project-level build.gradle (Gradle 8+ chuẩn)
+plugins {
+    // Không cần plugin Android ở project-level
+}
+
 buildscript {
     repositories {
         google()
@@ -9,10 +13,17 @@ buildscript {
     }
 }
 
-allprojects {
+// Dùng tất cả module con
+subprojects {
     repositories {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
     }
 }
+
+// Task clean cho root
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+

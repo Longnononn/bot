@@ -1,4 +1,3 @@
-// Project-level build.gradle
 buildscript {
     repositories {
         google()
@@ -9,8 +8,7 @@ buildscript {
     }
 }
 
-// Subprojects repository setup
-subprojects {
+allprojects {
     repositories {
         google()
         mavenCentral()
@@ -18,7 +16,6 @@ subprojects {
     }
 }
 
-// Task clean
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

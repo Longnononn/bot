@@ -22,23 +22,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3️⃣ Grant execute permission cho gradlew
+      # 3️⃣ Grant execute permission cho gradlew trong project/
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+        working-directory: project
 
-      # 4️⃣ Build Debug APK
+      # 4️⃣ Build Debug APK từ module app
       - name: Build Debug APK
-        run: |
-          # Nếu module app nằm ở root
-          ./gradlew :app:assembleDebug --warning-mode all --stacktrace
-
-          # Nếu module app nằm trong project/
-          # ./gradlew :project:app:assembleDebug --warning-mode all --stacktrace
+        run: ./gradlew :app:assembleDebug --warning-mode all --stacktrace
+        working-directory: project
 
       # 5️⃣ Upload APK debug
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: ./app/build/outputs/apk/debug/*.apk
-          # Nếu module app nằm trong project/: path: ./project/app/build/outputs/apk/debug/*.apk
+          path: ./project/app/build/outputs/apk/debug/*.apk

@@ -42,3 +42,4 @@ dependencies {
     // Tesseract OCR
     implementation 'cz.adaptech:tesseract4android:4.6.0'
 }
+
